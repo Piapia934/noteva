@@ -1,61 +1,28 @@
-const CACHE_NAME = 'noteva-v1';
-const OFFLINE_URL = '/notes';
+const CACHE = 'noteva-v1';
 
-// Assets to cache on install
-const STATIC_ASSETS = [
-    '/',
-    '/notes',
-    '/manifest.json',
-];
-
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            // Cache what we can, ignore failures
-            return Promise.allSettled(
-                STATIC_ASSETS.map(url => cache.add(url).catch(() => {}))
-            );
-        }).then(() => self.skipWaiting())
-    );
+self.addEventListener('install', e => {
+    self.skipWaiting();
 });
 
-self.addEventListener('activate', event => {
-    event.waitUntil(
+self.addEventListener('activate', e => {
+    e.waitUntil(
         caches.keys().then(keys =>
-            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+            Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
         ).then(() => self.clients.claim())
     );
 });
 
-// Network-first strategy (fresh data, fallback to cache for offline)
-self.addEventListener('fetch', event => {
-    const { request } = event;
+self.addEventListener('fetch', e => {
+    if (e.request.method !== 'GET') return;
+    if (!e.request.url.startsWith('http')) return;
 
-    // Only handle GET requests
-    if (request.method !== 'GET') return;
-
-    // Skip chrome-extension and non-http
-    if (!request.url.startsWith('http')) return;
-
-    event.respondWith(
-        fetch(request)
-            .then(response => {
-                // Cache successful navigations
-                if (response.ok && request.mode === 'navigate') {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-                }
-                return response;
+    e.respondWith(
+        fetch(e.request)
+            .then(res => {
+                const clone = res.clone();
+                caches.open(CACHE).then(c => c.put(e.request, clone));
+                return res;
             })
-            .catch(() => {
-                // Offline: try cache
-                return caches.match(request).then(cached => {
-                    if (cached) return cached;
-                    // For navigation, return the notes page from cache
-                    if (request.mode === 'navigate') {
-                        return caches.match(OFFLINE_URL);
-                    }
-                });
-            })
+            .catch(() => caches.match(e.request))
     );
 });
