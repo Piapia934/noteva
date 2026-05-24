@@ -8,7 +8,7 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('notes.index');
     }
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 Route::get('/dashboard', function () {
