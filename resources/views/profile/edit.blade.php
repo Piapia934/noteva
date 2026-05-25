@@ -1,134 +1,150 @@
-<x-app-layout>
-    <main class="profile-main">
-        <div class="profile-wrapper">
-
-            <div class="profile-page-title">
-                <h1>Profile Settings</h1>
-                <p>Manage your account information and security.</p>
-            </div>
-
-            <div class="profile-sections">
-
-                {{-- PROFILE INFO --}}
-                <div class="profile-box">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-
-                {{-- UPDATE PASSWORD --}}
-                <div class="profile-box">
-                    @include('profile.partials.update-password-form')
-                </div>
-
-                {{-- DELETE ACCOUNT --}}
-                <div class="profile-box danger-box">
-                    @include('profile.partials.delete-user-form')
-                </div>
-
-            </div>
-
-        </div>
-    </main>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Noteva — Profile</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f0e17">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-    body{
-        background:
-            radial-gradient(circle at top left, rgba(255,153,0,0.08), transparent 30%),
-            radial-gradient(circle at bottom right, rgba(99,102,241,0.08), transparent 30%),
-            #f5f5f7;
-    }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'DM Sans',sans-serif;background:#0f0e17;color:#fffffe;min-height:100vh;overflow-x:hidden;}
+        body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,107,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
+        body::after{content:'';position:fixed;bottom:-150px;right:-150px;width:500px;height:500px;background:radial-gradient(circle,rgba(77,150,255,0.1) 0%,transparent 70%);pointer-events:none;z-index:0;}
 
-    .profile-main{
-        min-height:100vh;
-        padding:50px 20px 80px;
-    }
+        /* NAV */
+        nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(15,14,23,0.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);}
+        .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(135deg,#ff6b6b,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
+        .nav-right{display:flex;gap:10px;align-items:center;}
+        .btn-nav{font-size:13px;padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#a7a9be;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+        .btn-nav:hover{border-color:#ff6b6b;color:#ff6b6b;}
 
-    .profile-wrapper{
-        max-width:1100px;
-        margin:auto;
-    }
+        /* MAIN */
+        main{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:40px 20px 80px;}
 
-    .profile-page-title{
-        text-align:center;
-        margin-bottom:40px;
-    }
+        .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:8px;}
+        .page-sub{font-size:14px;color:#a7a9be;margin-bottom:32px;}
 
-    .profile-page-title h1{
-        font-size:48px;
-        font-weight:800;
-        color:#2d1b69;
-        margin-bottom:10px;
-        letter-spacing:-2px;
-    }
+        /* CARDS */
+        .card{background:#1a1827;border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:28px;margin-bottom:20px;animation:fadeUp 0.4s ease both;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+        .card:nth-child(1){animation-delay:0.1s;}
+        .card:nth-child(2){animation-delay:0.2s;}
+        .card:nth-child(3){animation-delay:0.3s;}
 
-    .profile-page-title p{
-        font-size:16px;
-        color:#6b7280;
-    }
+        .card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:4px;}
+        .card-desc{font-size:13px;color:#a7a9be;margin-bottom:24px;}
 
-    .profile-sections{
-        display:flex;
-        flex-direction:column;
-        gap:30px;
-    }
+        /* FORM */
+        .form-group{margin-bottom:18px;}
+        label{display:block;font-size:13px;color:#a7a9be;margin-bottom:6px;}
+        input[type=text],input[type=email],input[type=password]{width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fffffe;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
+        input:focus{border-color:rgba(255,107,107,0.5);}
+        input::placeholder{color:#a7a9be;}
 
-    .profile-box{
-        background:rgba(255,255,255,0.75);
-        backdrop-filter:blur(18px);
-        border:1px solid rgba(255,255,255,0.4);
-        border-radius:32px;
-        padding:34px;
-        box-shadow:
-            0 10px 40px rgba(0,0,0,0.06),
-            inset 0 1px 0 rgba(255,255,255,0.6);
-        transition:all 0.25s ease;
-        position:relative;
-        overflow:hidden;
-    }
+        .btn-save{padding:10px 24px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:white;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+        .btn-save:hover{opacity:0.9;transform:translateY(-1px);}
+        .btn-danger{padding:10px 24px;border-radius:50px;border:1px solid rgba(255,107,107,0.4);background:transparent;color:#ff6b6b;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+        .btn-danger:hover{background:rgba(255,107,107,0.1);}
 
-    .profile-box:hover{
-        transform:translateY(-3px);
-        box-shadow:
-            0 16px 50px rgba(0,0,0,0.08),
-            inset 0 1px 0 rgba(255,255,255,0.6);
-    }
+        .success{background:rgba(107,203,119,0.1);border:1px solid rgba(107,203,119,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#6bcb77;margin-bottom:16px;}
+        .error{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff6b6b;margin-bottom:16px;}
 
-    .profile-box::before{
-        content:'';
-        position:absolute;
-        top:-100px;
-        right:-100px;
-        width:220px;
-        height:220px;
-        background:radial-gradient(circle,
-            rgba(255,153,0,0.12) 0%,
-            transparent 70%);
-        pointer-events:none;
-    }
-
-    .danger-box::before{
-        background:radial-gradient(circle,
-            rgba(255,0,0,0.08) 0%,
-            transparent 70%);
-    }
-
-    @media (max-width:768px){
-
-        .profile-main{
-            padding:30px 14px 60px;
-        }
-
-        .profile-page-title h1{
-            font-size:34px;
-        }
-
-        .profile-page-title p{
-            font-size:14px;
-        }
-
-        .profile-box{
-            padding:22px;
-            border-radius:24px;
-        }
-    }
+        .divider{height:1px;background:rgba(255,255,255,0.07);margin:20px 0;}
+        .footer-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+        .saved-text{font-size:13px;color:#6bcb77;}
     </style>
-</x-app-layout>
+</head>
+<body>
+
+<nav>
+    <a href="{{ route('notes.index') }}" class="nav-logo">✦ Noteva</a>
+    <div class="nav-right">
+        <a href="{{ route('dashboard') }}" class="btn-nav">🏠 Dashboard</a>
+        <a href="{{ route('notes.index') }}" class="btn-nav">📝 Notes</a>
+    </div>
+</nav>
+
+<main>
+    <h1 class="page-title">Profile Settings</h1>
+    <p class="page-sub">Manage your account information and security.</p>
+
+    {{-- UPDATE NAME & EMAIL --}}
+    <div class="card">
+        <div class="card-title">Personal Info</div>
+        <div class="card-desc">Update your name and email address.</div>
+
+        @if(session('status') === 'profile-updated')
+        <div class="success">✓ Profile updated successfully!</div>
+        @endif
+
+        @if($errors->get('name') || $errors->get('email'))
+        <div class="error">{{ $errors->first('name') ?? $errors->first('email') }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('profile.update') }}">
+            @csrf @method('patch')
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" value="{{ old('name', $user->name) }}" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ old('email', $user->email) }}" required>
+            </div>
+            <button type="submit" class="btn-save">Save Changes</button>
+        </form>
+    </div>
+
+    {{-- UPDATE PASSWORD --}}
+    <div class="card">
+        <div class="card-title">Change Password</div>
+        <div class="card-desc">Use a strong password to keep your account secure.</div>
+
+        @if(session('status') === 'password-updated')
+        <div class="success">✓ Password updated successfully!</div>
+        @endif
+
+        @if($errors->get('current_password') || $errors->get('password'))
+        <div class="error">{{ $errors->first('current_password') ?? $errors->first('password') }}</div>
+        @endif
+
+        <form method="POST" action="{{ route('password.update') }}">
+            @csrf @method('put')
+            <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" name="current_password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" name="password" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+                <label>Confirm New Password</label>
+                <input type="password" name="password_confirmation" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-save">Update Password</button>
+        </form>
+    </div>
+
+    {{-- DELETE ACCOUNT --}}
+    <div class="card">
+        <div class="card-title">Delete Account</div>
+        <div class="card-desc">Permanently delete your account and all your notes. This cannot be undone.</div>
+
+        <form method="POST" action="{{ route('profile.destroy') }}" onsubmit="return confirm('Are you sure? This will permanently delete your account and all notes!')">
+            @csrf @method('delete')
+            <div class="form-group">
+                <label>Enter your password to confirm</label>
+                <input type="password" name="password" placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-danger">Delete My Account</button>
+        </form>
+    </div>
+</main>
+
+</body>
+</html>
