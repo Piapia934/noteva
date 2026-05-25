@@ -15,30 +15,26 @@
         body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,107,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
         body::after{content:'';position:fixed;bottom:-150px;right:-150px;width:500px;height:500px;background:radial-gradient(circle,rgba(77,150,255,0.1) 0%,transparent 70%);pointer-events:none;z-index:0;}
 
-        /* NAV */
         nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(15,14,23,0.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.07);}
         .nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;background:linear-gradient(135deg,#ff6b6b,#ffd93d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;}
         .nav-right{display:flex;gap:10px;align-items:center;}
         .btn-nav{font-size:13px;padding:6px 14px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#a7a9be;cursor:pointer;transition:all 0.2s;text-decoration:none;}
         .btn-nav:hover{border-color:#ff6b6b;color:#ff6b6b;}
 
-        /* MAIN */
         main{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:40px 20px 80px;}
 
         .page-title{font-family:'Syne',sans-serif;font-weight:800;font-size:28px;margin-bottom:8px;}
         .page-sub{font-size:14px;color:#a7a9be;margin-bottom:32px;}
 
-        /* CARDS */
         .card{background:#1a1827;border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:28px;margin-bottom:20px;animation:fadeUp 0.4s ease both;}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
         .card:nth-child(1){animation-delay:0.1s;}
         .card:nth-child(2){animation-delay:0.2s;}
         .card:nth-child(3){animation-delay:0.3s;}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
 
         .card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:4px;}
         .card-desc{font-size:13px;color:#a7a9be;margin-bottom:24px;}
 
-        /* FORM */
         .form-group{margin-bottom:18px;}
         label{display:block;font-size:13px;color:#a7a9be;margin-bottom:6px;}
         input[type=text],input[type=email],input[type=password]{width:100%;padding:12px 16px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:12px;color:#fffffe;font-size:15px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;}
@@ -50,12 +46,8 @@
         .btn-danger{padding:10px 24px;border-radius:50px;border:1px solid rgba(255,107,107,0.4);background:transparent;color:#ff6b6b;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
         .btn-danger:hover{background:rgba(255,107,107,0.1);}
 
-        .success{background:rgba(107,203,119,0.1);border:1px solid rgba(107,203,119,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#6bcb77;margin-bottom:16px;}
-        .error{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff6b6b;margin-bottom:16px;}
-
-        .divider{height:1px;background:rgba(255,255,255,0.07);margin:20px 0;}
-        .footer-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-        .saved-text{font-size:13px;color:#6bcb77;}
+        .alert-success{background:rgba(107,203,119,0.1);border:1px solid rgba(107,203,119,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#6bcb77;margin-bottom:16px;}
+        .alert-error{background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#ff6b6b;margin-bottom:16px;}
     </style>
 </head>
 <body>
@@ -72,17 +64,16 @@
     <h1 class="page-title">Profile Settings</h1>
     <p class="page-sub">Manage your account information and security.</p>
 
-    {{-- UPDATE NAME & EMAIL --}}
+    {{-- PERSONAL INFO --}}
     <div class="card">
         <div class="card-title">Personal Info</div>
         <div class="card-desc">Update your name and email address.</div>
 
         @if(session('status') === 'profile-updated')
-        <div class="success">✓ Profile updated successfully!</div>
+        <div class="alert-success">✓ Profile updated successfully!</div>
         @endif
-
         @if($errors->get('name') || $errors->get('email'))
-        <div class="error">{{ $errors->first('name') ?? $errors->first('email') }}</div>
+        <div class="alert-error">{{ $errors->first('name') ?? $errors->first('email') }}</div>
         @endif
 
         <form method="POST" action="{{ route('profile.update') }}">
@@ -99,17 +90,16 @@
         </form>
     </div>
 
-    {{-- UPDATE PASSWORD --}}
+    {{-- CHANGE PASSWORD --}}
     <div class="card">
         <div class="card-title">Change Password</div>
         <div class="card-desc">Use a strong password to keep your account secure.</div>
 
         @if(session('status') === 'password-updated')
-        <div class="success">✓ Password updated successfully!</div>
+        <div class="alert-success">✓ Password updated successfully!</div>
         @endif
-
         @if($errors->get('current_password') || $errors->get('password'))
-        <div class="error">{{ $errors->first('current_password') ?? $errors->first('password') }}</div>
+        <div class="alert-error">{{ $errors->first('current_password') ?? $errors->first('password') }}</div>
         @endif
 
         <form method="POST" action="{{ route('password.update') }}">
@@ -135,13 +125,17 @@
         <div class="card-title">Delete Account</div>
         <div class="card-desc">Permanently delete your account and all your notes. This cannot be undone.</div>
 
+        @if($errors->get('password'))
+        <div class="alert-error">{{ $errors->first('password') }}</div>
+        @endif
+
         <form method="POST" action="{{ route('profile.destroy') }}" onsubmit="return confirm('Are you sure? This will permanently delete your account and all notes!')">
             @csrf @method('delete')
             <div class="form-group">
                 <label>Enter your password to confirm</label>
                 <input type="password" name="password" placeholder="••••••••">
             </div>
-            <button type="submit" class="btn-danger">Delete My Account</button>
+            <button type="submit" class="btn-danger">🗑 Delete My Account</button>
         </form>
     </div>
 </main>
