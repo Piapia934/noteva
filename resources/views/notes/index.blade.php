@@ -94,6 +94,7 @@
         .action-btn{width:28px;height:28px;border-radius:50%;border:1px solid rgba(128,128,128,0.3);background:rgba(0,0,0,0.15);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all 0.2s;}
         .action-btn:hover{background:rgba(128,128,128,0.2);}
         .action-btn.danger:hover{background:rgba(255,107,107,0.3);border-color:var(--accent);}
+        .action-btn.read:hover{background:rgba(77,150,255,0.3);border-color:#4d96ff;}
         .pin-badge{position:absolute;top:12px;right:12px;font-size:14px;}
 
         /* MODAL */
@@ -108,6 +109,15 @@
         .modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:12px;}
         .modal-footer-right{display:flex;gap:8px;}
 
+        /* READ MODE MODAL */
+        .read-modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:36px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
+        .read-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+        .read-badge{font-size:12px;color:#4d96ff;letter-spacing:2px;text-transform:uppercase;background:rgba(77,150,255,0.1);border:1px solid rgba(77,150,255,0.3);padding:4px 12px;border-radius:50px;}
+        .read-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:20px;line-height:1.3;color:var(--text);}
+        .read-body{font-size:15px;line-height:1.9;color:var(--muted);white-space:pre-wrap;word-break:break-word;}
+        .read-divider{height:1px;background:var(--border);margin:20px 0;}
+        .read-date{font-size:12px;color:var(--muted);}
+
         /* EMPTY */
         .empty{text-align:center;padding:80px 20px;color:var(--muted);}
         .empty-icon{font-size:56px;margin-bottom:16px;}
@@ -118,6 +128,9 @@
         .fab{position:fixed;bottom:28px;right:28px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#ff8e53);border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,107,0.5);display:none;align-items:center;justify-content:center;transition:transform 0.2s;z-index:50;}
         .fab:hover{transform:scale(1.1);}
         @media(max-width:640px){.fab{display:flex;}}
+
+        /* INSTALL BTN */
+        #installBtn{display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:white;border:none;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,107,0.4);z-index:999;}
 
         /* TOAST */
         .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:10px 22px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:300;}
@@ -131,14 +144,14 @@
         <span class="nav-logo">✦ Noteva</span>
         <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light</button>
     </div>
- <div class="nav-right">
-    <span class="nav-user">{{ auth()->user()->name }}</span>
-    <a href="{{ route('dashboard') }}" class="btn-logout">🏠 Dashboard</a>
-    <form method="POST" action="{{ route('logout') }}" style="display:inline">
-        @csrf
-        <button type="submit" class="btn-logout">Sign out</button>
-    </form>
-</div>
+    <div class="nav-right">
+        <span class="nav-user">{{ auth()->user()->name }}</span>
+        <a href="{{ route('dashboard') }}" class="btn-logout">🏠 Dashboard</a>
+        <form method="POST" action="{{ route('logout') }}" style="display:inline">
+            @csrf
+            <button type="submit" class="btn-logout">Sign out</button>
+        </form>
+    </div>
 </nav>
 
 <main>
@@ -197,6 +210,22 @@
     </div>
 </main>
 
+{{-- READ MODE MODAL --}}
+<div class="modal-overlay" id="readModal">
+    <div class="read-modal">
+        <div class="read-header">
+            <span class="read-badge">👁 Reading</span>
+            <button class="btn-cancel" type="button" onclick="closeReadModal()">✕ Close</button>
+        </div>
+        <div class="read-title" id="readTitle"></div>
+        <div class="read-divider"></div>
+        <div class="read-body" id="readBody"></div>
+        <div class="read-divider"></div>
+        <div class="read-date" id="readDate"></div>
+    </div>
+</div>
+
+{{-- EDIT MODAL --}}
 <div class="modal-overlay" id="editModal">
     <div class="modal">
         <input class="modal-title-input" id="editTitle" placeholder="Title">
@@ -212,6 +241,7 @@
 </div>
 
 <button class="fab" type="button" onclick="openAddCard();window.scrollTo({top:0,behavior:'smooth'})">+</button>
+<button id="installBtn">📲 Install App</button>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -298,7 +328,22 @@ async function saveNote() {
     document.getElementById('emptyState')?.remove();
 }
 
-// Modal
+// Read Mode
+function openReadModal(title, body, date, e) {
+    e.stopPropagation();
+    document.getElementById('readTitle').textContent = title || '(no title)';
+    document.getElementById('readBody').textContent  = body  || '(empty note)';
+    document.getElementById('readDate').textContent  = date  ? 'Last updated: ' + date : '';
+    document.getElementById('readModal').classList.add('open');
+}
+function closeReadModal() {
+    document.getElementById('readModal').classList.remove('open');
+}
+document.getElementById('readModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('readModal')) closeReadModal();
+});
+
+// Edit Modal
 function openModal(id, title, body, color, pinned) {
     currentEditId = id; selectedEditColor = color;
     document.getElementById('editTitle').value = title;
@@ -362,7 +407,7 @@ function prependCard(note) {
 }
 
 function makeCardHTML(note) {
-    const d = new Date(note.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const d = new Date(note.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
     return `<div class="note-card" data-id="${note.id}" style="background:${note.color}"
         onclick="openModal(${note.id},'${esc(note.title||'')}','${esc(note.body||'')}','${note.color}',false)">
         <div class="note-card-title">${note.title||'(no title)'}</div>
@@ -370,8 +415,9 @@ function makeCardHTML(note) {
         <div class="note-meta">
             <span class="note-date">${d}</span>
             <div class="note-actions">
-                <button class="action-btn" onclick="togglePin(${note.id},false,event)">📌</button>
-                <button class="action-btn danger" onclick="deleteNote(${note.id},event)">🗑</button>
+                <button class="action-btn read" title="Read" onclick="openReadModal('${esc(note.title||'')}','${esc(note.body||'')}','${d}',event)">👁</button>
+                <button class="action-btn" title="Pin" onclick="togglePin(${note.id},false,event)">📌</button>
+                <button class="action-btn danger" title="Delete" onclick="deleteNote(${note.id},event)">🗑</button>
             </div>
         </div></div>`;
 }
@@ -399,8 +445,31 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-document.addEventListener('keydown', e => { if (e.key==='Escape'){ closeModal(); closeAddCard(); } });
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+document.addEventListener('keydown', e => {
+    if (e.key==='Escape'){ closeModal(); closeAddCard(); closeReadModal(); }
+});
+
+// PWA Install
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+});
+installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    if (result.outcome === 'accepted') installBtn.style.display = 'none';
+    deferredPrompt = null;
+});
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+}
 </script>
 </body>
 </html>
