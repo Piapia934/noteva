@@ -97,11 +97,13 @@
         .action-btn.read:hover{background:rgba(77,150,255,0.3);border-color:#4d96ff;}
         .pin-badge{position:absolute;top:12px;right:12px;font-size:14px;}
 
-        /* MODAL */
+        /* ALL MODALS */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
         .modal-overlay.open{display:flex;}
-        .modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
         @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+        /* EDIT MODAL */
+        .modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
         .modal-title-input,.modal-body-input{width:100%;background:rgba(128,128,128,0.1);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;padding:12px 16px;transition:border-color 0.2s;}
         .modal-title-input:focus,.modal-body-input:focus{border-color:rgba(255,107,107,0.5);}
         .modal-title-input{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:12px;}
@@ -109,7 +111,7 @@
         .modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:12px;}
         .modal-footer-right{display:flex;gap:8px;}
 
-        /* READ MODE MODAL */
+        /* READ MODAL */
         .read-modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:36px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
         .read-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
         .read-badge{font-size:12px;color:#4d96ff;letter-spacing:2px;text-transform:uppercase;background:rgba(77,150,255,0.1);border:1px solid rgba(77,150,255,0.3);padding:4px 12px;border-radius:50px;}
@@ -117,6 +119,17 @@
         .read-body{font-size:15px;line-height:1.9;color:var(--muted);white-space:pre-wrap;word-break:break-word;}
         .read-divider{height:1px;background:var(--border);margin:20px 0;}
         .read-date{font-size:12px;color:var(--muted);}
+
+        /* DELETE CONFIRM MODAL */
+        .delete-modal{background:var(--surface2);border:1px solid rgba(255,107,107,0.3);border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center;animation:modalIn 0.25s ease;}
+        .delete-icon{font-size:48px;margin-bottom:16px;}
+        .delete-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:10px;color:var(--text);}
+        .delete-desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6;}
+        .delete-actions{display:flex;gap:12px;justify-content:center;}
+        .btn-confirm-delete{padding:12px 28px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6b6b,#ff4444);color:white;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+        .btn-confirm-delete:hover{opacity:0.9;transform:translateY(-1px);}
+        .btn-keep{padding:12px 28px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
+        .btn-keep:hover{color:var(--text);border-color:rgba(255,255,255,0.3);}
 
         /* EMPTY */
         .empty{text-align:center;padding:80px 20px;color:var(--muted);}
@@ -240,6 +253,19 @@
     </div>
 </div>
 
+{{-- DELETE CONFIRM MODAL --}}
+<div class="modal-overlay" id="deleteModal">
+    <div class="delete-modal">
+        <div class="delete-icon">🗑️</div>
+        <div class="delete-title">Delete Note?</div>
+        <div class="delete-desc">This note will be permanently deleted.<br>This action cannot be undone.</div>
+        <div class="delete-actions">
+            <button class="btn-keep" type="button" onclick="closeDeleteModal()">Keep it</button>
+            <button class="btn-confirm-delete" type="button" onclick="confirmDelete()">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
 <button class="fab" type="button" onclick="openAddCard();window.scrollTo({top:0,behavior:'smooth'})">+</button>
 <button id="installBtn">📲 Install App</button>
 <div class="toast" id="toast"></div>
@@ -250,7 +276,8 @@ const DARK_COLORS  = ['#1a1827','#3d2b2b','#2b3d2b','#2b2b3d','#3d3d2b','#4d2525
 const LIGHT_COLORS = ['#ffffff','#ffd6d6','#d6f5d6','#d6e8ff','#fffbcc','#ffe0e0','#dce8ff','#d6f0ea','#fff3dc'];
 const COLOR_LABELS = ['Default','Red','Green','Blue','Yellow','Dark Red','Navy','Teal','Amber'];
 
-let currentEditId = null;
+let currentEditId    = null;
+let pendingDeleteId  = null;
 let selectedAddColor  = DARK_COLORS[0];
 let selectedEditColor = DARK_COLORS[0];
 let isLight = false;
@@ -353,7 +380,9 @@ function openModal(id, title, body, color, pinned) {
     setTimeout(() => document.getElementById('editTitle').focus(), 50);
 }
 function closeModal() { document.getElementById('editModal').classList.remove('open'); currentEditId = null; }
-document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeModal(); });
+document.getElementById('editModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('editModal')) closeModal();
+});
 
 async function updateNote() {
     const title = document.getElementById('editTitle').value.trim();
@@ -373,6 +402,7 @@ async function updateNote() {
     closeModal(); showToast('Note updated ✓');
 }
 
+// Pin
 async function togglePin(id, current, e) {
     e.stopPropagation();
     await fetch(`/notes/${id}`, {
@@ -384,14 +414,35 @@ async function togglePin(id, current, e) {
     setTimeout(() => location.reload(), 600);
 }
 
-async function deleteNote(id, e) {
+// Delete with custom modal
+function deleteNote(id, e) {
     e.stopPropagation();
-    if (!confirm('Delete this note?')) return;
-    await fetch(`/notes/${id}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'} });
-    const card = document.querySelector(`[data-id="${id}"]`);
-    if (card) { card.style.cssText += 'opacity:0;transform:scale(0.9);transition:all 0.25s;'; setTimeout(() => card.remove(), 250); }
-    showToast('Note deleted'); updateCount(-1);
+    pendingDeleteId = id;
+    document.getElementById('deleteModal').classList.add('open');
 }
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+    pendingDeleteId = null;
+}
+async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    closeDeleteModal();
+    await fetch(`/notes/${id}`, {
+        method:'DELETE',
+        headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}
+    });
+    const card = document.querySelector(`[data-id="${id}"]`);
+    if (card) {
+        card.style.cssText += 'opacity:0;transform:scale(0.9);transition:all 0.25s;';
+        setTimeout(() => card.remove(), 250);
+    }
+    showToast('Note deleted');
+    updateCount(-1);
+}
+document.getElementById('deleteModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
+});
 
 function prependCard(note) {
     let grid = document.getElementById('othersGrid');
@@ -446,7 +497,7 @@ function showToast(msg) {
 }
 
 document.addEventListener('keydown', e => {
-    if (e.key==='Escape'){ closeModal(); closeAddCard(); closeReadModal(); }
+    if (e.key==='Escape'){ closeModal(); closeAddCard(); closeReadModal(); closeDeleteModal(); }
 });
 
 // PWA Install
