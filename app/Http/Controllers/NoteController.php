@@ -15,6 +15,10 @@ class NoteController extends Controller
             ->orderByDesc('updated_at')
             ->get();
 
+        if (request()->expectsJson()) {
+            return response()->json($notes);
+        }
+
         return view('notes.index', compact('notes'));
     }
 
@@ -27,15 +31,11 @@ class NoteController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
-        $validated['color'] = $validated['color'] ?? '#ffffff';
+        $validated['color']   = $validated['color'] ?? '#1a1827';
 
         $note = Note::create($validated);
 
-        if ($request->expectsJson()) {
-            return response()->json($note);
-        }
-
-        return redirect()->route('notes.index');
+        return response()->json($note);
     }
 
     public function update(Request $request, Note $note)
@@ -51,11 +51,7 @@ class NoteController extends Controller
 
         $note->update($validated);
 
-        if ($request->expectsJson()) {
-            return response()->json($note);
-        }
-
-        return redirect()->route('notes.index');
+        return response()->json($note);
     }
 
     public function destroy(Note $note)
@@ -63,10 +59,6 @@ class NoteController extends Controller
         abort_if($note->user_id !== Auth::id(), 403);
         $note->delete();
 
-        if (request()->expectsJson()) {
-            return response()->json(['deleted' => true]);
-        }
-
-        return redirect()->route('notes.index');
+        return response()->json(['deleted' => true]);
     }
 }

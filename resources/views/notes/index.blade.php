@@ -13,16 +13,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg:#0f0e17;--surface:#1a1827;--surface2:#221f33;
-            --accent:#ff6b6b;--accent2:#ffd93d;
-            --text:#fffffe;--muted:#a7a9be;
-            --border:rgba(255,255,255,0.07);--radius:18px;
-        }
-        body.light {
-            --bg:#f5f4f0;--surface:#ffffff;--surface2:#eeedf4;
-            --text:#0f0e17;--muted:#6e6d7a;--border:rgba(0,0,0,0.09);
-        }
+        :root{--bg:#0f0e17;--surface:#1a1827;--surface2:#221f33;--accent:#ff6b6b;--accent2:#ffd93d;--text:#fffffe;--muted:#a7a9be;--border:rgba(255,255,255,0.07);--radius:18px;}
+        body.light{--bg:#f5f4f0;--surface:#ffffff;--surface2:#eeedf4;--text:#0f0e17;--muted:#6e6d7a;--border:rgba(0,0,0,0.09);}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background 0.3s,color 0.3s;}
         body::before{content:'';position:fixed;top:-200px;left:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,107,0.12) 0%,transparent 70%);pointer-events:none;z-index:0;}
@@ -37,8 +29,14 @@
         .theme-btn:hover{border-color:var(--accent);}
         .nav-right{display:flex;align-items:center;gap:10px;}
         .nav-user{font-size:13px;color:var(--muted);}
-        .btn-logout{font-size:13px;padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;text-decoration:none;}
-        .btn-logout:hover{border-color:var(--accent);color:var(--accent);}
+        .btn-nav{font-size:13px;padding:6px 14px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all 0.2s;text-decoration:none;}
+        .btn-nav:hover{border-color:var(--accent);color:var(--accent);}
+
+        /* OFFLINE BANNER */
+        .offline-banner{display:none;position:fixed;top:65px;left:0;right:0;z-index:99;background:linear-gradient(135deg,#ff6b6b,#ff4444);color:white;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;}
+        .offline-banner.show{display:block;}
+        .sync-banner{display:none;position:fixed;top:65px;left:0;right:0;z-index:99;background:linear-gradient(135deg,#6bcb77,#4caf50);color:white;text-align:center;padding:8px 16px;font-size:13px;font-weight:600;}
+        .sync-banner.show{display:block;}
 
         /* MAIN */
         main{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:32px 20px 100px;}
@@ -84,6 +82,8 @@
         /* NOTE CARD */
         .note-card{border-radius:var(--radius);padding:20px;position:relative;border:1px solid var(--border);cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;animation:fadeUp 0.3s ease both;overflow:hidden;}
         .note-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.3);}
+        .note-card.offline-pending{border-color:rgba(255,211,61,0.5);}
+        .offline-badge{position:absolute;top:10px;left:10px;font-size:10px;background:rgba(255,211,61,0.2);border:1px solid rgba(255,211,61,0.4);color:#ffd93d;padding:2px 8px;border-radius:50px;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
         .note-card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin-bottom:8px;word-break:break-word;}
         .note-card-body{font-size:13px;line-height:1.65;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;word-break:break-word;}
@@ -97,12 +97,11 @@
         .action-btn.read:hover{background:rgba(77,150,255,0.3);border-color:#4d96ff;}
         .pin-badge{position:absolute;top:12px;right:12px;font-size:14px;}
 
-        /* ALL MODALS */
+        /* MODALS */
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
         .modal-overlay.open{display:flex;}
         @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
 
-        /* EDIT MODAL */
         .modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:28px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
         .modal-title-input,.modal-body-input{width:100%;background:rgba(128,128,128,0.1);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;padding:12px 16px;transition:border-color 0.2s;}
         .modal-title-input:focus,.modal-body-input:focus{border-color:rgba(255,107,107,0.5);}
@@ -111,7 +110,6 @@
         .modal-footer{display:flex;align-items:center;justify-content:space-between;margin-top:20px;flex-wrap:wrap;gap:12px;}
         .modal-footer-right{display:flex;gap:8px;}
 
-        /* READ MODAL */
         .read-modal{background:var(--surface2);border:1px solid var(--border);border-radius:24px;padding:36px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;animation:modalIn 0.25s ease;}
         .read-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
         .read-badge{font-size:12px;color:#4d96ff;letter-spacing:2px;text-transform:uppercase;background:rgba(77,150,255,0.1);border:1px solid rgba(77,150,255,0.3);padding:4px 12px;border-radius:50px;}
@@ -120,7 +118,6 @@
         .read-divider{height:1px;background:var(--border);margin:20px 0;}
         .read-date{font-size:12px;color:var(--muted);}
 
-        /* DELETE CONFIRM MODAL */
         .delete-modal{background:var(--surface2);border:1px solid rgba(255,107,107,0.3);border-radius:24px;padding:36px;width:100%;max-width:400px;text-align:center;animation:modalIn 0.25s ease;}
         .delete-icon{font-size:48px;margin-bottom:16px;}
         .delete-title{font-family:'Syne',sans-serif;font-weight:800;font-size:22px;margin-bottom:10px;color:var(--text);}
@@ -129,7 +126,7 @@
         .btn-confirm-delete{padding:12px 28px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6b6b,#ff4444);color:white;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
         .btn-confirm-delete:hover{opacity:0.9;transform:translateY(-1px);}
         .btn-keep{padding:12px 28px;border-radius:50px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:14px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.2s;}
-        .btn-keep:hover{color:var(--text);border-color:rgba(255,255,255,0.3);}
+        .btn-keep:hover{color:var(--text);}
 
         /* EMPTY */
         .empty{text-align:center;padding:80px 20px;color:var(--muted);}
@@ -142,15 +139,16 @@
         .fab:hover{transform:scale(1.1);}
         @media(max-width:640px){.fab{display:flex;}}
 
-        /* INSTALL BTN */
         #installBtn{display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:white;border:none;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,107,0.4);z-index:999;}
 
-        /* TOAST */
         .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:10px 22px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:300;}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
     </style>
 </head>
 <body>
+
+<div class="offline-banner" id="offlineBanner">📡 You're offline — notes saved locally and will sync when back online</div>
+<div class="sync-banner" id="syncBanner">✓ Back online! Syncing your notes…</div>
 
 <nav>
     <div class="nav-left">
@@ -159,10 +157,10 @@
     </div>
     <div class="nav-right">
         <span class="nav-user">{{ auth()->user()->name }}</span>
-        <a href="{{ route('dashboard') }}" class="btn-logout">🏠 Dashboard</a>
+        <a href="{{ route('dashboard') }}" class="btn-nav">🏠 Dashboard</a>
         <form method="POST" action="{{ route('logout') }}" style="display:inline">
             @csrf
-            <button type="submit" class="btn-logout">Sign out</button>
+            <button type="submit" class="btn-nav">Sign out</button>
         </form>
     </div>
 </nav>
@@ -179,10 +177,7 @@
     </div>
 
     <div class="add-card" id="addCard">
-        <div class="add-card-collapsed" id="addCollapsed">
-            <span>📝</span>
-            <span>Take a note…</span>
-        </div>
+        <div class="add-card-collapsed" id="addCollapsed"><span>📝</span><span>Take a note…</span></div>
         <div class="add-card-expanded" id="addExpanded">
             <input class="add-title-input" id="newTitle" placeholder="Title" autocomplete="off">
             <textarea class="add-body-input" id="newBody" placeholder="Write your note here…"></textarea>
@@ -198,21 +193,18 @@
 
     <div id="notesContainer">
         @php $pinned = $notes->where('pinned', true); $others = $notes->where('pinned', false); @endphp
-
         @if($pinned->count())
         <p class="section-label">📌 Pinned</p>
         <div class="notes-grid" id="pinnedGrid">
             @foreach($pinned as $note) @include('notes._card', ['note' => $note]) @endforeach
         </div><br>
         @endif
-
         @if($others->count())
         <p class="section-label">🗒 Others</p>
         <div class="notes-grid" id="othersGrid">
             @foreach($others as $note) @include('notes._card', ['note' => $note]) @endforeach
         </div>
         @endif
-
         @if($notes->isEmpty())
         <div class="empty" id="emptyState">
             <div class="empty-icon">🌙</div>
@@ -223,7 +215,7 @@
     </div>
 </main>
 
-{{-- READ MODE MODAL --}}
+{{-- READ MODAL --}}
 <div class="modal-overlay" id="readModal">
     <div class="read-modal">
         <div class="read-header">
@@ -253,7 +245,7 @@
     </div>
 </div>
 
-{{-- DELETE CONFIRM MODAL --}}
+{{-- DELETE MODAL --}}
 <div class="modal-overlay" id="deleteModal">
     <div class="delete-modal">
         <div class="delete-icon">🗑️</div>
@@ -271,28 +263,330 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+const CSRF   = document.querySelector('meta[name="csrf-token"]').content;
+const USER_ID = {{ auth()->id() }};
 const DARK_COLORS  = ['#1a1827','#3d2b2b','#2b3d2b','#2b2b3d','#3d3d2b','#4d2525','#25334d','#254d3a','#4d3d25'];
 const LIGHT_COLORS = ['#ffffff','#ffd6d6','#d6f5d6','#d6e8ff','#fffbcc','#ffe0e0','#dce8ff','#d6f0ea','#fff3dc'];
 const COLOR_LABELS = ['Default','Red','Green','Blue','Yellow','Dark Red','Navy','Teal','Amber'];
 
-let currentEditId    = null;
-let pendingDeleteId  = null;
+let currentEditId   = null;
+let pendingDeleteId = null;
 let selectedAddColor  = DARK_COLORS[0];
 let selectedEditColor = DARK_COLORS[0];
 let isLight = false;
+let isOnline = navigator.onLine;
+let allNotes = [];
 
+// ── IndexedDB ──────────────────────────────────────────
+const DB_NAME = 'noteva_db';
+const DB_VER  = 1;
+let db;
+
+function openDB() {
+    return new Promise((res, rej) => {
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = e => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains('notes')) {
+                d.createObjectStore('notes', { keyPath: 'local_id', autoIncrement: true });
+            }
+            if (!d.objectStoreNames.contains('queue')) {
+                d.createObjectStore('queue', { keyPath: 'id', autoIncrement: true });
+            }
+        };
+        req.onsuccess = e => { db = e.target.result; res(db); };
+        req.onerror   = () => rej(req.error);
+    });
+}
+
+function dbAll(store) {
+    return new Promise((res, rej) => {
+        const tx  = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).getAll();
+        req.onsuccess = () => res(req.result);
+        req.onerror   = () => rej(req.error);
+    });
+}
+
+function dbPut(store, obj) {
+    return new Promise((res, rej) => {
+        const tx  = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).put(obj);
+        req.onsuccess = () => res(req.result);
+        req.onerror   = () => rej(req.error);
+    });
+}
+
+function dbDelete(store, key) {
+    return new Promise((res, rej) => {
+        const tx  = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).delete(key);
+        req.onsuccess = () => res();
+        req.onerror   = () => rej(req.error);
+    });
+}
+
+function dbClear(store) {
+    return new Promise((res, rej) => {
+        const tx  = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).clear();
+        req.onsuccess = () => res();
+        req.onerror   = () => rej(req.error);
+    });
+}
+
+// ── Load notes ────────────────────────────────────────
+async function loadNotes() {
+    if (isOnline) {
+        try {
+            const res   = await fetch('/notes', { headers: { 'Accept': 'application/json' } });
+            const data  = await res.json();
+            allNotes    = data;
+            // Cache in IndexedDB
+            await dbClear('notes');
+            for (const n of data) await dbPut('notes', { ...n, local_id: n.id });
+        } catch {
+            allNotes = await dbAll('notes');
+        }
+    } else {
+        allNotes = await dbAll('notes');
+    }
+    renderNotes();
+}
+
+// ── Render ────────────────────────────────────────────
+function renderNotes() {
+    const container = document.getElementById('notesContainer');
+    const pinned    = allNotes.filter(n => n.pinned);
+    const others    = allNotes.filter(n => !n.pinned);
+    let html = '';
+
+    if (pinned.length) {
+        html += `<p class="section-label">📌 Pinned</p><div class="notes-grid" id="pinnedGrid">`;
+        pinned.forEach(n => { html += buildCardHTML(n); });
+        html += `</div><br>`;
+    }
+    if (others.length) {
+        html += `<p class="section-label">🗒 Others</p><div class="notes-grid" id="othersGrid">`;
+        others.forEach(n => { html += buildCardHTML(n); });
+        html += `</div>`;
+    }
+    if (!allNotes.length) {
+        html = `<div class="empty" id="emptyState"><div class="empty-icon">🌙</div><h3>No notes yet</h3><p>Click <strong>Take a note</strong> above to start writing.</p></div>`;
+    }
+    container.innerHTML = html;
+    document.getElementById('noteCount').textContent = `${allNotes.length} note${allNotes.length===1?'':'s'}`;
+}
+
+function buildCardHTML(note) {
+    const d       = note.updated_at ? new Date(note.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Just now';
+    const pending = note._pending ? '<span class="offline-badge">⏳ Pending sync</span>' : '';
+    const pinIcon = note.pinned ? '<span class="pin-badge">📌</span>' : '';
+    return `<div class="note-card${note._pending?' offline-pending':''}" data-id="${note.id||note.local_id}" style="background:${note.color||'#1a1827'}"
+        onclick="openModal(${JSON.stringify(note.id||null)},${JSON.stringify(note.local_id||null)},'${esc(note.title||'')}','${esc(note.body||'')}','${note.color||'#1a1827'}',${note.pinned?'true':'false'})">
+        ${pinIcon}${pending}
+        <div class="note-card-title">${esc2(note.title||'(no title)')}</div>
+        <div class="note-card-body">${esc2(note.body||'')}</div>
+        <div class="note-meta">
+            <span class="note-date">${d}</span>
+            <div class="note-actions">
+                <button class="action-btn read" title="Read" onclick="openReadModal('${esc(note.title||'')}','${esc(note.body||'')}','${d}',event)">👁</button>
+                <button class="action-btn" title="${note.pinned?'Unpin':'Pin'}" onclick="togglePin(${JSON.stringify(note.id||null)},${JSON.stringify(note.local_id||null)},${note.pinned?'true':'false'},event)">${note.pinned?'📍':'📌'}</button>
+                <button class="action-btn danger" title="Delete" onclick="askDelete(${JSON.stringify(note.id||null)},${JSON.stringify(note.local_id||null)},event)">🗑</button>
+            </div>
+        </div></div>`;
+}
+
+// ── Save Note ─────────────────────────────────────────
+async function saveNote() {
+    const title = document.getElementById('newTitle').value.trim();
+    const body  = document.getElementById('newBody').value.trim();
+    if (!title && !body) { showToast('Write something first!'); return; }
+
+    const note = { title, body, color: selectedAddColor, pinned: false, updated_at: new Date().toISOString(), _pending: !isOnline };
+
+    if (isOnline) {
+        try {
+            const res  = await fetch('/notes', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json' },
+                body: JSON.stringify({ title, body, color: selectedAddColor })
+            });
+            const saved = await res.json();
+            allNotes.unshift(saved);
+            await dbPut('notes', { ...saved, local_id: saved.id });
+        } catch {
+            await saveOffline(note);
+        }
+    } else {
+        await saveOffline(note);
+    }
+    closeAddCard();
+    renderNotes();
+    showToast(isOnline ? 'Note saved ✓' : 'Saved offline ✓');
+}
+
+async function saveOffline(note) {
+    const local_id = await dbPut('notes', note);
+    note.local_id  = local_id;
+    allNotes.unshift(note);
+    await dbPut('queue', { action: 'create', data: note, local_id });
+}
+
+// ── Update Note ───────────────────────────────────────
+async function updateNote() {
+    const title    = document.getElementById('editTitle').value.trim();
+    const body     = document.getElementById('editBody').value.trim();
+    const serverId = currentEditId?.server;
+    const localId  = currentEditId?.local;
+
+    if (isOnline && serverId) {
+        try {
+            const res  = await fetch(`/notes/${serverId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json' },
+                body: JSON.stringify({ title, body, color: selectedEditColor })
+            });
+            const updated = await res.json();
+            const idx = allNotes.findIndex(n => n.id === serverId);
+            if (idx > -1) allNotes[idx] = { ...allNotes[idx], ...updated };
+            await dbPut('notes', { ...updated, local_id: updated.id });
+        } catch {
+            updateOffline(serverId, localId, title, body);
+        }
+    } else {
+        updateOffline(serverId, localId, title, body);
+    }
+    closeModal();
+    renderNotes();
+    showToast(isOnline ? 'Note updated ✓' : 'Updated offline ✓');
+}
+
+async function updateOffline(serverId, localId, title, body) {
+    const idx = allNotes.findIndex(n => (serverId && n.id===serverId)||(localId && n.local_id===localId));
+    if (idx > -1) {
+        allNotes[idx] = { ...allNotes[idx], title, body, color: selectedEditColor, _pending: true, updated_at: new Date().toISOString() };
+        await dbPut('notes', { ...allNotes[idx] });
+        await dbPut('queue', { action:'update', server_id: serverId, local_id: localId, data: { title, body, color: selectedEditColor } });
+    }
+}
+
+// ── Delete Note ───────────────────────────────────────
+function askDelete(serverId, localId, e) {
+    e.stopPropagation();
+    pendingDeleteId = { server: serverId, local: localId };
+    document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+    pendingDeleteId = null;
+}
+async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const { server: serverId, local: localId } = pendingDeleteId;
+    closeDeleteModal();
+
+    if (isOnline && serverId) {
+        try {
+            await fetch(`/notes/${serverId}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'} });
+            await dbDelete('notes', serverId);
+        } catch {
+            await dbPut('queue', { action:'delete', server_id: serverId, local_id: localId });
+        }
+    } else {
+        await dbPut('queue', { action:'delete', server_id: serverId, local_id: localId });
+        if (localId) await dbDelete('notes', localId);
+    }
+    allNotes = allNotes.filter(n => !(n.id===serverId || n.local_id===localId));
+    renderNotes();
+    showToast('Note deleted');
+}
+
+// ── Sync Queue ────────────────────────────────────────
+async function syncQueue() {
+    const queue = await dbAll('queue');
+    if (!queue.length) return;
+    let synced = 0;
+    for (const item of queue) {
+        try {
+            if (item.action === 'create') {
+                const res  = await fetch('/notes', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+                    body: JSON.stringify(item.data)
+                });
+                const saved = await res.json();
+                await dbDelete('notes', item.local_id);
+                await dbPut('notes', { ...saved, local_id: saved.id });
+                const idx = allNotes.findIndex(n => n.local_id === item.local_id);
+                if (idx > -1) allNotes[idx] = { ...saved };
+            } else if (item.action === 'update' && item.server_id) {
+                await fetch(`/notes/${item.server_id}`, {
+                    method:'PATCH',
+                    headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+                    body: JSON.stringify(item.data)
+                });
+                const idx = allNotes.findIndex(n => n.id===item.server_id);
+                if (idx > -1) { allNotes[idx] = { ...allNotes[idx], ...item.data, _pending: false }; }
+            } else if (item.action === 'delete' && item.server_id) {
+                await fetch(`/notes/${item.server_id}`, { method:'DELETE', headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'} });
+            }
+            await dbDelete('queue', item.id);
+            synced++;
+        } catch {}
+    }
+    if (synced) { renderNotes(); showToast(`✓ Synced ${synced} note${synced>1?'s':''}!`); }
+}
+
+// ── Pin ───────────────────────────────────────────────
+async function togglePin(serverId, localId, current, e) {
+    e.stopPropagation();
+    const idx = allNotes.findIndex(n => (serverId && n.id===serverId)||(localId && n.local_id===localId));
+    if (idx > -1) allNotes[idx].pinned = !current;
+    if (isOnline && serverId) {
+        await fetch(`/notes/${serverId}`, {
+            method:'PATCH',
+            headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
+            body: JSON.stringify({ pinned: !current })
+        }).catch(()=>{});
+    }
+    renderNotes();
+    showToast(current ? 'Unpinned' : 'Pinned 📌');
+}
+
+// ── Read Modal ────────────────────────────────────────
+function openReadModal(title, body, date, e) {
+    e.stopPropagation();
+    document.getElementById('readTitle').textContent = title || '(no title)';
+    document.getElementById('readBody').textContent  = body  || '(empty note)';
+    document.getElementById('readDate').textContent  = date  ? 'Last updated: ' + date : '';
+    document.getElementById('readModal').classList.add('open');
+}
+function closeReadModal() { document.getElementById('readModal').classList.remove('open'); }
+document.getElementById('readModal').addEventListener('click', e => { if(e.target===document.getElementById('readModal')) closeReadModal(); });
+
+// ── Edit Modal ────────────────────────────────────────
+function openModal(serverId, localId, title, body, color, pinned) {
+    currentEditId = { server: serverId, local: localId };
+    selectedEditColor = color;
+    document.getElementById('editTitle').value = title;
+    document.getElementById('editBody').value  = body;
+    buildSwatches('editColorPicks', c => selectedEditColor = c, color);
+    document.getElementById('editModal').classList.add('open');
+    setTimeout(() => document.getElementById('editTitle').focus(), 50);
+}
+function closeModal() { document.getElementById('editModal').classList.remove('open'); currentEditId = null; }
+document.getElementById('editModal').addEventListener('click', e => { if(e.target===document.getElementById('editModal')) closeModal(); });
+
+// ── Theme ─────────────────────────────────────────────
 function getColors() { return isLight ? LIGHT_COLORS : DARK_COLORS; }
-
-// Theme
 function toggleTheme() {
     isLight = !isLight;
     document.body.classList.toggle('light', isLight);
     document.getElementById('themeBtn').textContent = isLight ? '🌙 Dark' : '☀️ Light';
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
-    selectedAddColor  = getColors()[0];
-    selectedEditColor = getColors()[0];
-    buildSwatches('addColorPicks',  c => selectedAddColor  = c, selectedAddColor);
+    selectedAddColor = selectedEditColor = getColors()[0];
+    buildSwatches('addColorPicks', c => selectedAddColor = c, selectedAddColor);
     buildSwatches('editColorPicks', c => selectedEditColor = c, selectedEditColor);
 }
 (function(){
@@ -304,13 +598,13 @@ function toggleTheme() {
     }
 })();
 
-// Swatches
+// ── Swatches ──────────────────────────────────────────
 function buildSwatches(containerId, onSelect, current) {
     const c = document.getElementById(containerId);
     c.innerHTML = '';
     getColors().forEach((col, i) => {
         const s = document.createElement('div');
-        s.className = 'color-swatch' + (col === current ? ' selected' : '');
+        s.className = 'color-swatch' + (col===current?' selected':'');
         s.style.cssText = `background:${col};border-color:${col===current?'rgba(128,128,128,0.6)':'transparent'}`;
         s.title = COLOR_LABELS[i];
         s.onclick = () => {
@@ -324,7 +618,7 @@ function buildSwatches(containerId, onSelect, current) {
 buildSwatches('addColorPicks',  c => selectedAddColor  = c, selectedAddColor);
 buildSwatches('editColorPicks', c => selectedEditColor = c, selectedEditColor);
 
-// Add card
+// ── Add Card ──────────────────────────────────────────
 document.getElementById('addCollapsed').addEventListener('click', openAddCard);
 function openAddCard() {
     document.getElementById('addCard').classList.add('open');
@@ -338,149 +632,7 @@ function closeAddCard() {
     buildSwatches('addColorPicks', c => selectedAddColor = c, selectedAddColor);
 }
 
-async function saveNote() {
-    const title = document.getElementById('newTitle').value.trim();
-    const body  = document.getElementById('newBody').value.trim();
-    if (!title && !body) { showToast('Write something first!'); return; }
-    const res  = await fetch('/notes', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
-        body: JSON.stringify({ title, body, color: selectedAddColor })
-    });
-    const note = await res.json();
-    prependCard(note);
-    closeAddCard();
-    showToast('Note saved ✓');
-    updateCount(1);
-    document.getElementById('emptyState')?.remove();
-}
-
-// Read Mode
-function openReadModal(title, body, date, e) {
-    e.stopPropagation();
-    document.getElementById('readTitle').textContent = title || '(no title)';
-    document.getElementById('readBody').textContent  = body  || '(empty note)';
-    document.getElementById('readDate').textContent  = date  ? 'Last updated: ' + date : '';
-    document.getElementById('readModal').classList.add('open');
-}
-function closeReadModal() {
-    document.getElementById('readModal').classList.remove('open');
-}
-document.getElementById('readModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('readModal')) closeReadModal();
-});
-
-// Edit Modal
-function openModal(id, title, body, color, pinned) {
-    currentEditId = id; selectedEditColor = color;
-    document.getElementById('editTitle').value = title;
-    document.getElementById('editBody').value  = body;
-    buildSwatches('editColorPicks', c => selectedEditColor = c, color);
-    document.getElementById('editModal').classList.add('open');
-    setTimeout(() => document.getElementById('editTitle').focus(), 50);
-}
-function closeModal() { document.getElementById('editModal').classList.remove('open'); currentEditId = null; }
-document.getElementById('editModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('editModal')) closeModal();
-});
-
-async function updateNote() {
-    const title = document.getElementById('editTitle').value.trim();
-    const body  = document.getElementById('editBody').value.trim();
-    const res   = await fetch(`/notes/${currentEditId}`, {
-        method:'PATCH',
-        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
-        body: JSON.stringify({ title, body, color: selectedEditColor })
-    });
-    const note = await res.json();
-    const card = document.querySelector(`[data-id="${currentEditId}"]`);
-    if (card) {
-        card.style.background = note.color;
-        card.querySelector('.note-card-title').textContent = note.title || '(no title)';
-        card.querySelector('.note-card-body').textContent  = note.body  || '';
-    }
-    closeModal(); showToast('Note updated ✓');
-}
-
-// Pin
-async function togglePin(id, current, e) {
-    e.stopPropagation();
-    await fetch(`/notes/${id}`, {
-        method:'PATCH',
-        headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF,'Accept':'application/json'},
-        body: JSON.stringify({ pinned: !current })
-    });
-    showToast(current ? 'Unpinned' : 'Pinned 📌');
-    setTimeout(() => location.reload(), 600);
-}
-
-// Delete with custom modal
-function deleteNote(id, e) {
-    e.stopPropagation();
-    pendingDeleteId = id;
-    document.getElementById('deleteModal').classList.add('open');
-}
-function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.remove('open');
-    pendingDeleteId = null;
-}
-async function confirmDelete() {
-    if (!pendingDeleteId) return;
-    const id = pendingDeleteId;
-    closeDeleteModal();
-    await fetch(`/notes/${id}`, {
-        method:'DELETE',
-        headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}
-    });
-    const card = document.querySelector(`[data-id="${id}"]`);
-    if (card) {
-        card.style.cssText += 'opacity:0;transform:scale(0.9);transition:all 0.25s;';
-        setTimeout(() => card.remove(), 250);
-    }
-    showToast('Note deleted');
-    updateCount(-1);
-}
-document.getElementById('deleteModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('deleteModal')) closeDeleteModal();
-});
-
-function prependCard(note) {
-    let grid = document.getElementById('othersGrid');
-    if (!grid) {
-        const lbl = document.createElement('p'); lbl.className='section-label'; lbl.textContent='🗒 Others';
-        document.getElementById('notesContainer').appendChild(lbl);
-        grid = document.createElement('div'); grid.className='notes-grid'; grid.id='othersGrid';
-        document.getElementById('notesContainer').appendChild(grid);
-    }
-    const d = document.createElement('div');
-    d.innerHTML = makeCardHTML(note);
-    grid.prepend(d.firstElementChild);
-}
-
-function makeCardHTML(note) {
-    const d = new Date(note.updated_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    return `<div class="note-card" data-id="${note.id}" style="background:${note.color}"
-        onclick="openModal(${note.id},'${esc(note.title||'')}','${esc(note.body||'')}','${note.color}',false)">
-        <div class="note-card-title">${note.title||'(no title)'}</div>
-        <div class="note-card-body">${note.body||''}</div>
-        <div class="note-meta">
-            <span class="note-date">${d}</span>
-            <div class="note-actions">
-                <button class="action-btn read" title="Read" onclick="openReadModal('${esc(note.title||'')}','${esc(note.body||'')}','${d}',event)">👁</button>
-                <button class="action-btn" title="Pin" onclick="togglePin(${note.id},false,event)">📌</button>
-                <button class="action-btn danger" title="Delete" onclick="deleteNote(${note.id},event)">🗑</button>
-            </div>
-        </div></div>`;
-}
-
-function esc(s){ return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
-
-function updateCount(d) {
-    const el = document.getElementById('noteCount');
-    const n  = parseInt(el.textContent) + d;
-    el.textContent = `${n} note${n===1?'':'s'}`;
-}
-
+// ── Search ────────────────────────────────────────────
 document.getElementById('search').addEventListener('input', function(){
     const q = this.value.toLowerCase();
     document.querySelectorAll('.note-card').forEach(card => {
@@ -490,37 +642,62 @@ document.getElementById('search').addEventListener('input', function(){
     });
 });
 
+// ── Toast ─────────────────────────────────────────────
 function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2200);
+    setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+// ── Helpers ───────────────────────────────────────────
+function esc(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n'); }
+function esc2(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Online / Offline events ───────────────────────────
+window.addEventListener('offline', () => {
+    isOnline = false;
+    document.getElementById('offlineBanner').classList.add('show');
+    document.getElementById('syncBanner').classList.remove('show');
+});
+window.addEventListener('online', async () => {
+    isOnline = true;
+    document.getElementById('offlineBanner').classList.remove('show');
+    document.getElementById('syncBanner').classList.add('show');
+    await syncQueue();
+    await loadNotes();
+    setTimeout(() => document.getElementById('syncBanner').classList.remove('show'), 3000);
+});
+
+// ── Keyboard ──────────────────────────────────────────
 document.addEventListener('keydown', e => {
     if (e.key==='Escape'){ closeModal(); closeAddCard(); closeReadModal(); closeDeleteModal(); }
 });
 
-// PWA Install
+// ── PWA Install ───────────────────────────────────────
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'block';
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block';
 });
 installBtn.addEventListener('click', async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    if (result.outcome === 'accepted') installBtn.style.display = 'none';
+    const r = await deferredPrompt.userChoice;
+    if (r.outcome === 'accepted') installBtn.style.display = 'none';
     deferredPrompt = null;
 });
 
-// Service Worker
+// ── Service Worker ────────────────────────────────────
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
     navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
 }
+
+// ── Init ──────────────────────────────────────────────
+openDB().then(() => {
+    if (!isOnline) document.getElementById('offlineBanner').classList.add('show');
+    loadNotes();
+});
 </script>
 </body>
 </html>
