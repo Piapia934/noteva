@@ -139,7 +139,7 @@
         .fab:hover{transform:scale(1.1);}
         @media(max-width:640px){.fab{display:flex;}}
 
-        #installBtn{display:none;position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:white;border:none;padding:12px 28px;border-radius:50px;font-size:14px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(255,107,107,0.4);z-index:999;}
+        #installBtn{display:none;padding:6px 14px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6b6b,#ff8e53);color:white;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:0 4px 14px rgba(255,107,107,0.4);transition:all 0.2s;}#installBtn:hover{opacity:0.9;transform:translateY(-1px);}
 
         .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:10px 22px;font-size:13px;opacity:0;transition:all 0.3s;pointer-events:none;z-index:300;}
         .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -157,6 +157,7 @@
     </div>
     <div class="nav-right">
         <span class="nav-user">{{ auth()->user()->name }}</span>
+        <button id="installBtn" onclick="triggerInstall()">📲 Install</button>
         <a href="{{ route('dashboard') }}" class="btn-nav">🏠 Dashboard</a>
         <form method="POST" action="{{ route('logout') }}" style="display:inline">
             @csrf
@@ -259,7 +260,7 @@
 </div>
 
 <button class="fab" type="button" onclick="openAddCard();window.scrollTo({top:0,behavior:'smooth'})">+</button>
-<button id="installBtn">📲 Install App</button>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -676,16 +677,32 @@ document.addEventListener('keydown', e => {
 // ── PWA Install ───────────────────────────────────────
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
+
 window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block';
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
 });
-installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const r = await deferredPrompt.userChoice;
-    if (r.outcome === 'accepted') installBtn.style.display = 'none';
+
+window.addEventListener('appinstalled', () => {
+    installBtn.style.display = 'none';
     deferredPrompt = null;
+    showToast('✓ App installed successfully!');
 });
+
+async function triggerInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const r = await deferredPrompt.userChoice;
+        if (r.outcome === 'accepted') {
+            installBtn.style.display = 'none';
+            showToast('✓ App installed!');
+        }
+        deferredPrompt = null;
+    } else {
+        showToast('To install: tap 3 dots → Add to Home Screen');
+    }
+}
 
 // ── Service Worker ────────────────────────────────────
 if ('serviceWorker' in navigator) {
